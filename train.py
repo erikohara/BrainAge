@@ -1,5 +1,7 @@
-# from torch.utils.tensorboard import SummaryWriter
-from monai.transforms import CenterSpatialCrop
+import torchvision.transforms
+from torch.utils.tensorboard import SummaryWriter
+# from monai.transforms import CenterSpatialCrop
+from monai.data import ITKReaderpi
 
 import datasets
 from header import *
@@ -26,19 +28,23 @@ def main():
 
     # Reading the data and the denormalization function
     images, mean_age, ages, get_age = read_data("data", postfix=".tiff", max_entries=MAX_IMAGES)
-    img=tifffile.imread(images[0])
-    img=crop_center(img,50,50)
-    plt.imshow(img)
-    plt.show()
+    # img=tifffile.imread(images[0])
+    # img=crop_center(img,50,50)
+    # plt.imshow(img)
+    # plt.show()
 
     # Add transforms to the dataset
-    transforms = Compose([crop_center(), EnsureChannelFirst(), NormalizeIntensity()])
+    transforms = Compose([torchvision.transforms.CenterCrop(50), EnsureChannelFirst(), NormalizeIntensity()])
 
     # Define image dataset, data loader
     ds = ImageDataset(image_files=images, labels=ages,transform=transforms, dtype=np.float32,reader="ITKReader")
     # ds = datasets.UKBBT1Dataset("data", transforms)
+    # ds.transform(crop_center(50,50))
     # ds[0][0][0]=crop_center(ds[0][0][0], 50, 50)
-    print(ds[0][0].shape)
+
+    # plt.imshow(crop_center(ds[0][0][0], 50, 50))
+    # print(ds.__getitem__(0))
+
     plt.imshow(ds[0][0][0])
     plt.show()
 
