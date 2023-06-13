@@ -1,7 +1,7 @@
 import torchvision.transforms
 from torch.utils.tensorboard import SummaryWriter
 # from monai.transforms import CenterSpatialCrop
-from monai.data import ITKReaderpi
+from monai.data import ITKReader
 
 import datasets
 from header import *
@@ -11,7 +11,7 @@ import tifffile
 import pandas as pd
 from torch.utils.data import Dataset
 
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 N_WORKERS = 8
 N_EPOCHS = 100
 MAX_IMAGES = -1
@@ -45,8 +45,8 @@ def main():
     # plt.imshow(crop_center(ds[0][0][0], 50, 50))
     # print(ds.__getitem__(0))
 
-    plt.imshow(ds[0][0][0])
-    plt.show()
+    # plt.imshow(ds[0][0][0])
+    # plt.show()
 
     # Split the data into training and testing sets
     train_ds, val_ds, test_ds = torch.utils.data.random_split(ds, [.8, .1, .1])
@@ -130,7 +130,6 @@ def main():
                 test_Y = test_Y.type('torch.cuda.FloatTensor')
 
                 # Make a prediction
-                print("TEST: \n\n\n\n"+test_X)
                 pred = model(test_X)
 
                 # Calculate the losses
