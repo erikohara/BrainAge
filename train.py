@@ -1,8 +1,13 @@
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
+from monai.transforms import CenterSpatialCrop
+
+import datasets
 from header import *
 import monai
 import tifffile
 # import nibabel
+import pandas as pd
+from torch.utils.data import Dataset
 
 BATCH_SIZE = 8
 N_WORKERS = 8
@@ -10,20 +15,31 @@ N_EPOCHS = 100
 MAX_IMAGES = -1
 LR = 0.0001
 
+
+def crop_center(img, cropx, cropy):
+    y, x = img.shape
+    startx = x // 2 - (cropx // 2)
+    starty = y // 2 - (cropy // 2)
+    return img[starty:starty + cropy, startx:startx + cropx]
+
 def main():
 
     # Reading the data and the denormalization function
     images, mean_age, ages, get_age = read_data("data", postfix=".tiff", max_entries=MAX_IMAGES)
     img=tifffile.imread(images[0])
-    # plt.imshow(img)
-    # plt.show()
+    img=crop_center(img,50,50)
+    plt.imshow(img)
+    plt.show()
 
     # Add transforms to the dataset
-    transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150,100]),EnsureChannelFirst(), NormalizeIntensity()])
+    transforms = Compose([crop_center(), EnsureChannelFirst(), NormalizeIntensity()])
 
     # Define image dataset, data loader
-    ds = ImageDataset(image_files=images, labels=ages, dtype=np.float32)
-    plt.imshow(ds[0])
+    ds = ImageDataset(image_files=images, labels=ages,transform=transforms, dtype=np.float32,reader="ITKReader")
+    # ds = datasets.UKBBT1Dataset("data", transforms)
+    # ds[0][0][0]=crop_center(ds[0][0][0], 50, 50)
+    print(ds[0][0].shape)
+    plt.imshow(ds[0][0][0])
     plt.show()
 
     # Split the data into training and testing sets
