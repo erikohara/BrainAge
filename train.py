@@ -12,8 +12,8 @@ import pandas as pd
 from torch.utils.data import Dataset
 
 BATCH_SIZE = 16
-N_WORKERS = 8
-N_EPOCHS = 100
+N_WORKERS = 0
+N_EPOCHS = 10
 MAX_IMAGES = -1
 LR = 0.0001
 
@@ -27,14 +27,14 @@ def crop_center(img, cropx, cropy):
 def main():
 
     # Reading the data and the denormalization function
-    images, mean_age, ages, get_age = read_data("data", postfix=".tiff", max_entries=MAX_IMAGES)
+    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_cropped_slices/T1_cropped_slice_100", postfix=".tiff", max_entries=MAX_IMAGES)
     # img=tifffile.imread(images[0])
     # img=crop_center(img,50,50)
     # plt.imshow(img)
     # plt.show()
 
     # Add transforms to the dataset
-    transforms = Compose([torchvision.transforms.CenterCrop(50), EnsureChannelFirst(), NormalizeIntensity()])
+    transforms = Compose([torchvision.transforms.CenterCrop([140,180]), EnsureChannelFirst(), NormalizeIntensity()])
 
     # Define image dataset, data loader
     ds = ImageDataset(image_files=images, labels=ages,transform=transforms, dtype=np.float32,reader="ITKReader")
@@ -148,7 +148,7 @@ def main():
         schdlr.step()
 
         # Save the model every 10th iteration if the loss is the lowest in this session
-        if MSE_loss.item() < min_MSE.item() and epoch % 10 == 0:
+        if MSE_loss.item() < min_MSE.item():# and epoch % 10 == 0:
             min_MSE = MSE_loss.detach()
             best_metric_epoch = epoch
             torch.save(model.state_dict(), f'models/epoch_{epoch}_model.pt')
@@ -161,7 +161,7 @@ def main():
     # Training ended
     print_title("End of Training")
     print(f"best metric epoch: {best_metric_epoch}")
-    print(f"best mertic (MSE): {min_MSE.item()}")
+    print(f"best metric (MSE): {min_MSE.item()}")
 
     writer.flush()
 
