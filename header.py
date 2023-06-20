@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from monai.data import ImageDataset, DataLoader
 from monai.transforms import EnsureChannelFirst, Compose, NormalizeIntensity
 
-DEBUG = True
+DEBUG = False
 
 def print_title(str):
     print("\n", "-"*10 , f" {str} ", "-"*10)
@@ -52,7 +52,7 @@ def read_data(folder_name, postfix, max_entries = -1, normalize = False):
         
     '''
     
-    df = pd.read_csv('ukbb_img.csv')
+    df = pd.read_csv('/home/finn.vamosi/BrainAge/ukbb_img.csv')
     #path = os.sep.join([".", folder_name])
     path=folder_name
     images = []

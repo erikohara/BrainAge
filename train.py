@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 
 BATCH_SIZE = 16
 N_WORKERS = 0
-N_EPOCHS = 10
+N_EPOCHS = 100
 MAX_IMAGES = -1
 LR = 0.0001
 
@@ -27,25 +27,17 @@ def crop_center(img, cropx, cropy):
 def main():
 
     # Reading the data and the denormalization function
-    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_cropped_slices/T1_cropped_slice_100", postfix=".tiff", max_entries=MAX_IMAGES)
-    # img=tifffile.imread(images[0])
-    # img=crop_center(img,50,50)
-    # plt.imshow(img)
-    # plt.show()
+    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_cropped_slices/T1_cropped_slice_91", postfix=".tiff", max_entries=MAX_IMAGES)
+    #images, mean_age, ages, get_age = read_data("data/91", postfix=".tiff", max_entries=MAX_IMAGES)
 
     # Add transforms to the dataset
-    transforms = Compose([torchvision.transforms.CenterCrop([140,180]), EnsureChannelFirst(), NormalizeIntensity()])
+    transforms = Compose([torchvision.transforms.CenterCrop(150), EnsureChannelFirst(), NormalizeIntensity()])
 
     # Define image dataset, data loader
     ds = ImageDataset(image_files=images, labels=ages,transform=transforms, dtype=np.float32,reader="ITKReader")
-    # ds = datasets.UKBBT1Dataset("data", transforms)
-    # ds.transform(crop_center(50,50))
-    # ds[0][0][0]=crop_center(ds[0][0][0], 50, 50)
 
-    # plt.imshow(crop_center(ds[0][0][0], 50, 50))
-    # print(ds.__getitem__(0))
-
-    # plt.imshow(ds[0][0][0])
+    # x=0
+    # plt.imshow(ds[x][0][0])
     # plt.show()
 
     # Split the data into training and testing sets
@@ -56,8 +48,8 @@ def main():
     
     if DEBUG:
         print_title("Image Properties")
-        print(f"Max Tensor Value: {torch.max(ds[0][0])} Min Tensor Value: {torch.min(ds[0][0])}")
-        print(f"Shape of the image {ds[0][0].shape}")
+        #print(f"Max Tensor Value: {torch.max(ds[0][0])} Min Tensor Value: {torch.min(ds[0][0])}")
+        #print(f"Shape of the image {ds[0][0].shape}")
         print_title("Loading the data")
         print(f"length of ds: {len(ds)} ")
         print(f"Mean Age: {mean_age}")
@@ -148,10 +140,10 @@ def main():
         schdlr.step()
 
         # Save the model every 10th iteration if the loss is the lowest in this session
-        if MSE_loss.item() < min_MSE.item():# and epoch % 10 == 0:
+        if MSE_loss.item() < min_MSE.item() and epoch % 10 == 0:
             min_MSE = MSE_loss.detach()
             best_metric_epoch = epoch
-            torch.save(model.state_dict(), f'models/epoch_{epoch}_model.pt')
+            torch.save(model.state_dict(), f'/home/finn.vamosi/BrainAge/models/epoch_{epoch}_model.pt')
 
         writer.add_scalar(f"Training lr={LR}/MSE_train", list_avg(train_losses), epoch)
         writer.add_scalar(f"Testing lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
@@ -166,7 +158,7 @@ def main():
     writer.flush()
 
     # Saving the model
-    torch.save(model.state_dict(), 'models/end_model.pt')
+    torch.save(model.state_dict(), '/home/finn.vamosi/BrainAge/models/end_model.pt')
 
     # Testing
     print_title("Testing")
