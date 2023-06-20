@@ -52,7 +52,8 @@ def read_data(folder_name, postfix, max_entries = -1, normalize = False):
         
     '''
     
-    df = pd.read_csv('ukbb_img.csv')
+    # df = pd.read_csv('ukbb_img.csv')
+    df = pd.read_csv('/home/finn.vamosi/3Brain/ukbb_img.csv')
     path = os.sep.join([".", folder_name])
     images = []
     ages = np.array([])

@@ -1,30 +1,32 @@
+import nibabel
 from torch.utils.tensorboard import SummaryWriter
+
+import customTransforms
 from header import *
 import monai
-import tifffile
-# import nibabel
+import nibabel
 
-BATCH_SIZE = 8
-N_WORKERS = 8
-N_EPOCHS = 100
+BATCH_SIZE = 16
+N_WORKERS = 4
+N_EPOCHS = 10
 MAX_IMAGES = -1
 LR = 0.0001
 
 def main():
 
     # Reading the data and the denormalization function
-    images, mean_age, ages, get_age = read_data("data", postfix=".tiff", max_entries=MAX_IMAGES)
-    img=tifffile.imread(images[0])
-    # plt.imshow(img)
-    # plt.show()
+    # images, mean_age, ages, get_age = read_data("data/3d", postfix=".nii.gz", max_entries=MAX_IMAGES)
+    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped", postfix=".nii.gz", max_entries=MAX_IMAGES)
+
 
     # Add transforms to the dataset
-    transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150,100]),EnsureChannelFirst(), NormalizeIntensity()])
+    # transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150]),EnsureChannelFirst(), NormalizeIntensity()])
+    transforms = Compose([customTransforms.Crop3D((150,150,150)),EnsureChannelFirst(), NormalizeIntensity()])
 
     # Define image dataset, data loader
-    ds = ImageDataset(image_files=images, labels=ages, dtype=np.float32)
-    plt.imshow(ds[0])
-    plt.show()
+    ds = ImageDataset(image_files=images, labels=ages, dtype=np.float32, transform=transforms,reader="NibabelReader")
+    # plt.imshow(ds[0][0][0][80])
+    # plt.show()
 
     # Split the data into training and testing sets
     train_ds, val_ds, test_ds = torch.utils.data.random_split(ds, [.8, .1, .1])
@@ -108,7 +110,7 @@ def main():
                 test_Y = test_Y.type('torch.cuda.FloatTensor')
 
                 # Make a prediction
-                print("TEST: \n\n\n\n"+test_X)
+                #print("TEST: \n"+test_X)
                 pred = model(test_X)
 
                 # Calculate the losses
@@ -130,7 +132,8 @@ def main():
         if MSE_loss.item() < min_MSE.item() and epoch % 10 == 0:
             min_MSE = MSE_loss.detach()
             best_metric_epoch = epoch
-            torch.save(model.state_dict(), f'models/epoch_{epoch}_model.pt')
+            # torch.save(model.state_dict(), f'models/epoch_{epoch}_model.pt')
+            torch.save(model.state_dict(), '/home/finn.vamosi/3Brain/models/epoch_{epoch}_model.pt')
 
         writer.add_scalar(f"Training lr={LR}/MSE_train", list_avg(train_losses), epoch)
         writer.add_scalar(f"Testing lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
@@ -145,7 +148,8 @@ def main():
     writer.flush()
 
     # Saving the model
-    torch.save(model.state_dict(), 'models/end_model.pt')
+    # torch.save(model.state_dict(), 'models/end_model.pt')
+    torch.save(model.state_dict(), '/home/finn.vamosi/3Brain/models/end_model.pt')
 
     # Testing
     print_title("Testing")
