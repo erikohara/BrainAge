@@ -6,16 +6,27 @@ from header import *
 import monai
 import nibabel
 
-BATCH_SIZE = 16
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+BATCH_SIZE = 256
 N_WORKERS = 4
-N_EPOCHS = 10
+N_EPOCHS = 15
 MAX_IMAGES = -1
-LR = 0.0001
+LR = 0.001
 
 def main():
 
+    # Setup DDP:
+    dist.init_process_group("nccl")
+    rank = dist.get_rank()
+    device = rank % torch.cuda.device_count()
+    torch.manual_seed(1)
+    torch.cuda.set_device(device)
+    print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
+
     # Reading the data and the denormalization function
-    # images, mean_age, ages, get_age = read_data("data/3d", postfix=".nii.gz", max_entries=MAX_IMAGES)
+    # images, mean_age, ages, get_age = read_data("data/91", postfix=".nii.gz", max_entries=MAX_IMAGES)
     images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped", postfix=".nii.gz", max_entries=MAX_IMAGES)
 
 
@@ -30,6 +41,27 @@ def main():
 
     # Split the data into training and testing sets
     train_ds, val_ds, test_ds = torch.utils.data.random_split(ds, [.8, .1, .1])
+
+    train_list_eid = [train_ds.dataset.image_files[x] for x in train_ds.indices]
+    val_list_eid = [val_ds.dataset.image_files[x] for x in val_ds.indices]
+    test_list_eid = [test_ds.dataset.image_files[x] for x in test_ds.indices]
+
+    # print(train_list_eid)
+    # print(val_list_eid)
+    # print(test_list_eid)
+
+    with open("split/train.txt", "w") as file:
+        for name in train_list_eid:
+            file.write("%s\n" % name)
+
+    with open("split/validation.txt", "w") as file:
+        for name in val_list_eid:
+            file.write("%s\n" % name)
+
+    with open("split/test.txt", "w") as file:
+        for name in test_list_eid:
+            file.write("%s\n" % name)
+
     train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available())
     val_loader = DataLoader(val_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available())
     test_loader = DataLoader(test_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available())
@@ -54,7 +86,7 @@ def main():
         print("device: ", device)
     
     # Load the model
-    model = SFCNModel().to(device)
+    model = DDP(SFCNModel().to(device), device_ids=[device])
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
     lr = LR
@@ -187,7 +219,7 @@ def main():
     print(f"MAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv("predictions.csv")
+    df.to_csv("/home/finn.vamosi/3Brain/predictions.csv")
 
     if DEBUG:
         print_title("Testing Data")

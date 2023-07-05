@@ -13,13 +13,16 @@ from monai.transforms import EnsureChannelFirst, Compose, NormalizeIntensity
 
 DEBUG = False
 
+
 def print_title(str):
-    print("\n", "-"*10 , f" {str} ", "-"*10)
+    print("\n", "-" * 10, f" {str} ", "-" * 10)
+
 
 def list_avg(ls):
-    return sum(ls)/len(ls)
+    return sum(ls) / len(ls)
 
-def read_data(folder_name, postfix, max_entries = -1, normalize = False):
+
+def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     '''
         Reads the images from a directory and returns the valid image paths, normalized ages, and
         a denormalize function
@@ -51,32 +54,48 @@ def read_data(folder_name, postfix, max_entries = -1, normalize = False):
             values to the ages.
         
     '''
-    
+
     # df = pd.read_csv('ukbb_img.csv')
     df = pd.read_csv('/home/finn.vamosi/3Brain/ukbb_img.csv')
-    path = os.sep.join([".", folder_name])
+    # path = os.sep.join([".", folder_name])
+    path = folder_name
+
     images = []
     ages = np.array([])
+    diseased = []
+    idx = 0
 
     # Cleaning the data
     df = df.drop_duplicates(subset=["EID"])
 
-    for f in os.listdir(path):
+    with open("overlap.txt", "r") as file:
+        for line in file:
+            # remove linebreak (which is last character)
+            name = line[:-1]
+            diseased.append(name)
+
+    for f in sorted(os.listdir(path)):
         # Find the EID in the file
         filename = f.split('.')[0]
-        images.append(filename)
-        
-        # Find the corresponding age
-        s_age = df.query(f"EID == {filename}")["Age"]
-        if not s_age.empty:
-            age = s_age.iloc[0]
 
-        age = np.float32(age)
-        ages = np.append(ages, age)
+        if filename == diseased[idx]:
+            # skip over diseased subjects
+            if idx < len(diseased) - 1:
+                idx += 1
+        else:
+            images.append(filename)
 
-        max_entries -= 1
-        if max_entries == 0:
-            break
+            # Find the corresponding age
+            s_age = df.query(f"EID == {filename}")["Age"]
+            if not s_age.empty:
+                age = s_age.iloc[0]
+
+            age = np.float32(age)
+            ages = np.append(ages, age)
+
+            max_entries -= 1
+            if max_entries == 0:
+                break
 
     # Convert the images into paths
     images = [os.sep.join([path, image + postfix]) for image in images]
@@ -90,9 +109,8 @@ def read_data(folder_name, postfix, max_entries = -1, normalize = False):
     # the normalized number back to the original ages
     # denorm_fn = lambda x : x*sd_age + mean_age
     if not normalize:
-        denorm_fn = lambda x : x
+        denorm_fn = lambda x: x
         norm_ages = ages
-
 
     if DEBUG:
         print_title("Reading the CSV File")
@@ -107,6 +125,7 @@ def read_data(folder_name, postfix, max_entries = -1, normalize = False):
 
     return images, mean_age, norm_ages, denorm_fn
 
+
 def MAE_with_mean_fn(mean, ls):
-    AE_list = [ abs(x - mean) for x in ls ]
+    AE_list = [abs(x - mean) for x in ls]
     return list_avg(AE_list)
