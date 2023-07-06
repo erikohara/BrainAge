@@ -51,15 +51,15 @@ def main():
     # print(val_list_eid)
     # print(test_list_eid)
 
-    with open("split/train2d.txt", "w") as file:
+    with open("/home/finn.vamosi/3Brain/split/train2d.txt", "w") as file:
         for name in train_list_eid:
             file.write("%s\n" % name)
 
-    with open("split/validation2d.txt", "w") as file:
+    with open("/home/finn.vamosi/3Brain/split/val2d.txt", "w") as file:
         for name in val_list_eid:
             file.write("%s\n" % name)
 
-    with open("split/test2d.txt", "w") as file:
+    with open("/home/finn.vamosi/3Brain/split/test2d.txt", "w") as file:
         for name in test_list_eid:
             file.write("%s\n" % name)
 
