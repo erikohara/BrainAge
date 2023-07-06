@@ -2,7 +2,7 @@ import nibabel
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
 
-import customTransforms
+#import customTransforms
 from header2d import *
 import monai
 import nibabel
@@ -18,13 +18,13 @@ LR = 0.0001
 
 def main():
 
-    # Setup DDP:
-    dist.init_process_group("nccl")
-    rank = dist.get_rank()
-    device = rank % torch.cuda.device_count()
-    torch.manual_seed(1)
-    torch.cuda.set_device(device)
-    print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
+    # # Setup DDP:
+    # dist.init_process_group("nccl")
+    # rank = dist.get_rank()
+    # device = rank % torch.cuda.device_count()
+    # torch.manual_seed(1)
+    # torch.cuda.set_device(device)
+    # print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
 
     # Reading the data and the denormalization function
     # images, mean_age, ages, get_age = read_data("data/91", postfix=".nii.gz", max_entries=MAX_IMAGES)
@@ -87,7 +87,7 @@ def main():
         print("device: ", device)
     
     # Load the model
-    model = DDP(SFCNModel().to(device), device_ids=[device])
+    model = SFCNModel().to(device)
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
     lr = LR

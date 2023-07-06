@@ -68,7 +68,7 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     # Cleaning the data
     df = df.drop_duplicates(subset=["EID"])
 
-    with open("overlap.txt", "r") as file:
+    with open("/home/finn.vamosi/BrainAge/overlap.txt", "r") as file:
         for line in file:
             # remove linebreak (which is last character)
             name = line[:-1]
