@@ -1,4 +1,5 @@
 import nibabel
+from torch.utils.data import DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
 import customTransforms
@@ -9,7 +10,7 @@ import nibabel
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 N_WORKERS = 4
 N_EPOCHS = 15
 MAX_IMAGES = -1
@@ -20,10 +21,14 @@ def main():
     # Setup DDP:
     dist.init_process_group("nccl")
     rank = dist.get_rank()
+    # rank = int(os.environ["LOCAL_RANK"])
     device = rank % torch.cuda.device_count()
-    torch.manual_seed(1)
+    seed = 1 * dist.get_world_size() + rank
+    torch.manual_seed(seed)
     torch.cuda.set_device(device)
     print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
+
+    print(torch.cuda.device_count())
 
     # Reading the data and the denormalization function
     # images, mean_age, ages, get_age = read_data("data/91", postfix=".nii.gz", max_entries=MAX_IMAGES)
@@ -62,9 +67,9 @@ def main():
         for name in test_list_eid:
             file.write("%s\n" % name)
 
-    train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available())
-    val_loader = DataLoader(val_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available())
-    test_loader = DataLoader(test_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available())
+    train_loader = DataLoader(train_ds, shuffle=False, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available(), sampler=DistributedSampler(train_ds))
+    val_loader = DataLoader(val_ds, shuffle=False, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available(), sampler=DistributedSampler(val_ds))
+    test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE, num_workers=N_WORKERS, pin_memory=torch.cuda.is_available(), sampler=DistributedSampler(test_ds))
     
     if DEBUG:
         print_title("Image Properties")
@@ -76,17 +81,17 @@ def main():
         print_title("Data Splitting")
         print(f"Train: {len(train_ds)} Val: {len(val_ds)} Test: {len(test_ds)}")
 
-    # Check if CUDA is available
-    torch.cuda._lazy_init()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(device)
-    if device == "cuda":
-        torch.cuda.empty_cache()
-    if DEBUG:
-        print("device: ", device)
+    # # Check if CUDA is available
+    # torch.cuda._lazy_init()
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # print(device)
+    # if device == "cuda":
+    #     torch.cuda.empty_cache()
+    # if DEBUG:
+    #     print("device: ", device)
     
     # Load the model
-    model = DDP(SFCNModel().to(device), device_ids=[device])
+    model = DDP(SFCNModel().to(device), device_ids=[rank])
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
     lr = LR
@@ -175,7 +180,7 @@ def main():
     # Training ended
     print_title("End of Training")
     print(f"best metric epoch: {best_metric_epoch}")
-    print(f"best mertic (MSE): {min_MSE.item()}")
+    print(f"best metric (MSE): {min_MSE.item()}")
 
     writer.flush()
 

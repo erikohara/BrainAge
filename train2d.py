@@ -51,15 +51,15 @@ def main():
     # print(val_list_eid)
     # print(test_list_eid)
 
-    with open("/home/finn.vamosi/3Brain/split/train2d.txt", "w") as file:
+    with open("/home/finn.vamosi/BrainAge/split/train2d.txt", "w") as file:
         for name in train_list_eid:
             file.write("%s\n" % name)
 
-    with open("/home/finn.vamosi/3Brain/split/val2d.txt", "w") as file:
+    with open("/home/finn.vamosi/BrainAge/split/val2d.txt", "w") as file:
         for name in val_list_eid:
             file.write("%s\n" % name)
 
-    with open("/home/finn.vamosi/3Brain/split/test2d.txt", "w") as file:
+    with open("/home/finn.vamosi/BrainAge/split/test2d.txt", "w") as file:
         for name in test_list_eid:
             file.write("%s\n" % name)
 
@@ -166,7 +166,7 @@ def main():
             min_MSE = MSE_loss.detach()
             best_metric_epoch = epoch
             # torch.save(model.state_dict(), f'models/epoch_{epoch}_model.pt')
-            torch.save(model.state_dict(), '/home/finn.vamosi/BrainAge/models/epoch_{epoch}_model.pt')
+            torch.save(model.state_dict(), f'/home/finn.vamosi/BrainAge/models/epoch_{epoch}_model.pt')
 
         writer.add_scalar(f"Training lr={LR}/MSE_train", list_avg(train_losses), epoch)
         writer.add_scalar(f"Testing lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
@@ -176,7 +176,7 @@ def main():
     # Training ended
     print_title("End of Training")
     print(f"best metric epoch: {best_metric_epoch}")
-    print(f"best mertic (MSE): {min_MSE.item()}")
+    print(f"best metric (MSE): {min_MSE.item()}")
 
     writer.flush()
 
