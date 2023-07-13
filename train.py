@@ -9,6 +9,7 @@ import nibabel
 
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
+import torch.multiprocessing as mp
 
 BATCH_SIZE = 128
 N_WORKERS = 4
@@ -16,16 +17,23 @@ N_EPOCHS = 15
 MAX_IMAGES = -1
 LR = 0.001
 
-def main():
+def setup(rank, world_size):
+
+    dist.init_process_group('nccl', rank=rank, world_size=world_size)
+    torch.cuda.set_device(rank)
+
+def main(rank, world_size):
+
+    setup(rank,world_size)
 
     # Setup DDP:
-    dist.init_process_group("nccl")
-    rank = dist.get_rank()
-    # rank = int(os.environ["LOCAL_RANK"])
-    device = rank % torch.cuda.device_count()
+    # dist.init_process_group("nccl")
+    # rank = dist.get_rank()
+    # # rank = int(os.environ["LOCAL_RANK"])
+    # device = rank % torch.cuda.device_count()
     seed = 1 * dist.get_world_size() + rank
     torch.manual_seed(seed)
-    torch.cuda.set_device(device)
+    # torch.cuda.set_device(device)
     print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
 
     print(torch.cuda.device_count())
@@ -91,7 +99,10 @@ def main():
     #     print("device: ", device)
     
     # Load the model
-    model = DDP(SFCNModel().to(device), device_ids=[rank])
+    # model = DDP(SFCNModel().to(device), device_ids=[rank])
+    model=DDP(SFCNModel().to(rank), device_ids=[rank])
+    device=rank
+
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
     lr = LR
@@ -238,5 +249,6 @@ if __name__ == "__main__":
             DEBUG = True
     else:
         DEBUG = False
-    
-    main()
+    z=torch.cuda.device_count()    
+    print(z)
+    mp.spawn(main, args=(z,),nprocs=2)
