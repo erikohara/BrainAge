@@ -60,7 +60,10 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     # path = os.sep.join([".", folder_name])
     path = folder_name
 
-    images = []
+    train_images = []
+    val_images = []
+    test_images = []
+
     ages = np.array([])
     diseased = []
     idx = 0
@@ -74,33 +77,41 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
             name = line[:-1]
             diseased.append(name)
 
-    for f in sorted(os.listdir(path)):
-        # Find the EID in the file
-        filename = f.split('.')[0]
+    for subset in ["train", "val", "test"]:
+        for f in sorted(os.listdir(path + "/" + subset)):
+            # Find the EID in the file
+            filename = f.split('.')[0]
 
-        if filename == diseased[idx]:
-            # skip over diseased subjects
-            if idx < len(diseased) - 1:
-                idx += 1
-        else:
-            images.append(filename)
+            if filename == diseased[idx]:
+                # skip over diseased subjects
+                if idx < len(diseased) - 1:
+                    idx += 1
+            else:
+                if subset == "train":
+                    train_images.append(filename)
+                elif subset == "val":
+                    val_images.append(filename)
+                else:
+                    test_images.append(filename)
 
-            # Find the corresponding age
-            s_age = df.query(f"EID == {filename}")["Age"]
-            if not s_age.empty:
-                age = s_age.iloc[0]
+                # Find the corresponding age
+                s_age = df.query(f"EID == {filename}")["Age"]
+                if not s_age.empty:
+                    age = s_age.iloc[0]
 
-            age = np.float32(age)
-            ages = np.append(ages, age)
+                age = np.float32(age)
+                ages = np.append(ages, age)
 
-            max_entries -= 1
-            if max_entries == 0:
-                break
+                max_entries -= 1
+                if max_entries == 0:
+                    break
 
     # Convert the images into paths
-    images = [os.sep.join([path, image + postfix]) for image in images]
+    train_images = [os.sep.join([path, image + postfix]) for image in train_images]
+    val_images = [os.sep.join([path, image + postfix]) for image in val_images]
+    test_images = [os.sep.join([path, image + postfix]) for image in test_images]
 
-    # Z Normalizing the ages 
+    # Z Normalizing the ages
     mean_age = df["Age"].mean()
     sd_age = df["Age"].std()
     norm_ages = (ages - mean_age) / sd_age
@@ -115,7 +126,7 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     if DEBUG:
         print_title("Reading the CSV File")
         print(df)
-        print(images[:5])
+        # print(images[:5])
         print(ages[:5])
         print("mean age: ", mean_age, " sd age: ", sd_age)
         print("Displaying the frequency distribution of the data...")
@@ -123,7 +134,7 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
         plt.gca().set(title='Frequency Histogram', ylabel='Frequency', xlabel='Ages')
         plt.show()
 
-    return images, mean_age, norm_ages, denorm_fn
+    return train_images, val_images, test_images, mean_age, norm_ages, denorm_fn
 
 
 def MAE_with_mean_fn(mean, ls):
