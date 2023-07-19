@@ -55,8 +55,8 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
         
     '''
 
-    # df = pd.read_csv('ukbb_img.csv')
-    df = pd.read_csv('/home/finn.vamosi/3Brain/ukbb_img.csv')
+    df = pd.read_csv('ukbb_img.csv')
+    # df = pd.read_csv('/home/finn.vamosi/3Brain/ukbb_img.csv')
     # path = os.sep.join([".", folder_name])
     path = folder_name
 
@@ -71,7 +71,7 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     # Cleaning the data
     df = df.drop_duplicates(subset=["EID"])
 
-    with open("/home/finn.vamosi/3Brain/overlap.txt", "r") as file:
+    with open("overlap.txt", "r") as file:
         for line in file:
             # remove linebreak (which is last character)
             name = line[:-1]
@@ -79,6 +79,7 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
 
     for subset in ["train", "val", "test"]:
         for f in sorted(os.listdir(path + "/" + subset)):
+            print(f)
             # Find the EID in the file
             filename = f.split('.')[0]
 

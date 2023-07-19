@@ -16,6 +16,9 @@ N_WORKERS = 4
 N_EPOCHS = 15
 MAX_IMAGES = 500
 LR = 0.001
+CKPT_EVERY = 3
+USE_CKPT = False
+CKPT_NUM = 3
 
 
 def setup(rank, world_size):
@@ -24,27 +27,28 @@ def setup(rank, world_size):
 
 
 def main(rank, world_size):
-    setup(rank, world_size)
+    # setup(rank, world_size)
 
     # Setup DDP:
     # dist.init_process_group("nccl")
     # rank = dist.get_rank()
     # # rank = int(os.environ["LOCAL_RANK"])
     # device = rank % torch.cuda.device_count()
-    seed = 1 * dist.get_world_size() + rank
-    torch.manual_seed(seed)
-    # torch.cuda.set_device(device)
-    print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
-
-    print(torch.cuda.device_count())
+    # seed = 1 * dist.get_world_size() + rank
+    # torch.manual_seed(seed)
+    # # torch.cuda.set_device(device)
+    # print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
+    #
+    # print(torch.cuda.device_count())
 
     # Reading the data and the denormalization function
-    # images, mean_age, ages, get_age = read_data("data/91", postfix=".nii.gz", max_entries=MAX_IMAGES)
+    train_images, val_images, test_images, mean_age, ages, get_age = read_data("data/91", postfix=".nii.gz",
+                                                                               max_entries=MAX_IMAGES)
     # images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped", postfix=".nii.gz", max_entries=MAX_IMAGES)
 
-    train_images, val_images, test_images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
-                                                                               postfix=".nii.gz",
-                                                                               max_entries=MAX_IMAGES)
+    # train_images, val_images, test_images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
+    #                                                                            postfix=".nii.gz",
+    #                                                                            max_entries=MAX_IMAGES)
 
     # Add transforms to the dataset
     # transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150]),EnsureChannelFirst(), NormalizeIntensity()])
@@ -109,13 +113,20 @@ def main(rank, world_size):
 
     # Load the model
     # model = DDP(SFCNModel().to(device), device_ids=[rank])
-    model = DDP(SFCNModel().to(rank), device_ids=[rank])
+    lr = LR
+    if USE_CKPT:
+        print("Using checkpoint")
+        ckpt = torch.load(f"/home/finn.vamosi/3Brain/checkpoints/{CKPT_NUM:07d}.pt")
+        model = ckpt.load_state_dict(ckpt['model'])
+        opt = ckpt.load_state_dict(ckpt['optimizer'])
+    else:
+        print("Not using checkpoint")
+        model = DDP(SFCNModel().to(rank), device_ids=[rank])
+        opt = torch.optim.Adam(model.parameters(), lr)
     device = rank
 
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
-    lr = LR
-    opt = torch.optim.Adam(model.parameters(), lr)
     schdlr = torch.optim.lr_scheduler.StepLR(opt, step_size=N_EPOCHS // 3, gamma=0.1)
     writer = SummaryWriter()
 
@@ -181,6 +192,16 @@ def main(rank, world_size):
                 pbar2.set_description(
                     f"Epoch {epoch + 1:<2} MSE Loss: {MSE_loss.item():<.4f} MAE Loss: {MAE_loss.item():<.4f} "
                     f"Last Predicted Age: {get_age(pred[-1].item()):<.4f} Last Actual Age: {get_age(test_Y[-1].item()):<.4f}")
+
+        if epoch % CKPT_EVERY == 0 and epoch > 0:
+            if rank == 0:
+                checkpoint = {
+                    "model": model.module.state_dict(),
+                    "optimizer": opt.state_dict()
+                }
+                checkpoint_path = f"/home/finn.vamosi/3Brain/checkpoints/{epoch:07d}.pt"
+                torch.save(checkpoint, checkpoint_path)
+                writer.add_text(f"Saved checkpoint to {checkpoint_path}")
 
         # Epoch over
         schdlr.step()
