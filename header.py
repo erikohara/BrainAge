@@ -78,6 +78,11 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
             diseased.append(name)
 
     for subset in ["train", "val", "test"]:
+        if subset == "train":
+            current_max = .8 * max_entries
+        else:
+            current_max = .1 * max_entries
+
         for f in sorted(os.listdir(path + "/" + subset)):
             print(f)
             # Find the EID in the file
@@ -103,8 +108,8 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
                 age = np.float32(age)
                 ages = np.append(ages, age)
 
-                max_entries -= 1
-                if max_entries == 0:
+                current_max -= 1
+                if current_max == 0:
                     break
 
     # Convert the images into paths

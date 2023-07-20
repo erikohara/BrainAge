@@ -11,10 +11,10 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.multiprocessing as mp
 
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 N_WORKERS = 4
-N_EPOCHS = 15
-MAX_IMAGES = 500
+N_EPOCHS = 30
+MAX_IMAGES = 1000
 LR = 0.001
 CKPT_EVERY = 3
 USE_CKPT = False
@@ -27,22 +27,26 @@ def setup(rank, world_size):
 
 
 def main(rank, world_size):
-    # setup(rank, world_size)
+    setup(rank, world_size)
 
     # Setup DDP:
     # dist.init_process_group("nccl")
     # rank = dist.get_rank()
     # # rank = int(os.environ["LOCAL_RANK"])
     # device = rank % torch.cuda.device_count()
-    # seed = 1 * dist.get_world_size() + rank
-    # torch.manual_seed(seed)
-    # # torch.cuda.set_device(device)
-    # print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
-    #
-    # print(torch.cuda.device_count())
+    seed = 1 * dist.get_world_size() + rank
+    torch.manual_seed(seed)
+    # torch.cuda.set_device(device)
+    print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
+
+    print(torch.cuda.device_count())
 
     # Reading the data and the denormalization function
-    train_images, val_images, test_images, mean_age, ages, get_age = read_data("data/91", postfix=".nii.gz",
+    # images, mean_age, ages, get_age = read_data("data/91", postfix=".nii.gz", max_entries=MAX_IMAGES)
+    # images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped", postfix=".nii.gz", max_entries=MAX_IMAGES)
+
+    train_images, val_images, test_images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
+                                                                               postfix=".nii.gz",
                                                                                max_entries=MAX_IMAGES)
     # images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped", postfix=".nii.gz", max_entries=MAX_IMAGES)
 
@@ -284,4 +288,4 @@ if __name__ == "__main__":
         DEBUG = False
     z = torch.cuda.device_count()
     print(z)
-    mp.spawn(main, args=(z,), nprocs=2)
+    mp.spawn(main, args=(z,), nprocs=1)
