@@ -16,7 +16,7 @@ N_WORKERS = 4
 N_EPOCHS = 30
 MAX_IMAGES = 1000
 LR = 0.001
-CKPT_EVERY = 3
+CKPT_EVERY = 999
 USE_CKPT = False
 CKPT_NUM = 3
 
@@ -211,11 +211,11 @@ def main(rank, world_size):
         schdlr.step()
 
         # Save the model every 10th iteration if the loss is the lowest in this session
-        if MSE_loss.item() < min_MSE.item() and epoch % 10 == 0:
+        if MSE_loss.item() < min_MSE.item() and epoch % 5 == 0:
             min_MSE = MSE_loss.detach()
             best_metric_epoch = epoch
             # torch.save(model.state_dict(), f'models/epoch_{epoch}_model.pt')
-            torch.save(model.state_dict(), '/home/finn.vamosi/3Brain/models/epoch_{epoch}_model.pt')
+            torch.save(model.state_dict(), f'/home/finn.vamosi/3Brain/models/epoch_{epoch}_model.pt')
 
         writer.add_scalar(f"Training lr={LR}/MSE_train", list_avg(train_losses), epoch)
         writer.add_scalar(f"Testing lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
