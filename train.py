@@ -14,7 +14,7 @@ import torch.multiprocessing as mp
 BATCH_SIZE = 8
 N_WORKERS = 4
 N_EPOCHS = 30
-MAX_IMAGES = 1000
+MAX_IMAGES = 2000
 LR = 0.001
 CKPT_EVERY = 999
 USE_CKPT = False

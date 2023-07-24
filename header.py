@@ -84,7 +84,6 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
             current_max = .1 * max_entries
 
         for f in sorted(os.listdir(path + "/" + subset)):
-            print(f)
             # Find the EID in the file
             filename = f.split('.')[0]
 
@@ -113,9 +112,9 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
                     break
 
     # Convert the images into paths
-    train_images = [os.sep.join([path, image + postfix]) for image in train_images]
-    val_images = [os.sep.join([path, image + postfix]) for image in val_images]
-    test_images = [os.sep.join([path, image + postfix]) for image in test_images]
+    train_images = [os.sep.join([path + "/train/", image + postfix]) for image in train_images]
+    val_images = [os.sep.join([path + "/val/", image + postfix]) for image in val_images]
+    test_images = [os.sep.join([path + "/test/", image + postfix]) for image in test_images]
 
     # Z Normalizing the ages
     mean_age = df["Age"].mean()
