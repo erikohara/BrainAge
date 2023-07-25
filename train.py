@@ -3,6 +3,7 @@ from torch.utils.data import DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
 import customTransforms
+from SFCN import SFCNModelMONAI
 from header import *
 import monai
 import nibabel
@@ -14,8 +15,8 @@ import torch.multiprocessing as mp
 BATCH_SIZE = 8
 N_WORKERS = 4
 N_EPOCHS = 30
-MAX_IMAGES = 2000
-LR = 0.001
+MAX_IMAGES = 10000
+LR = 0.0001
 CKPT_EVERY = 999
 USE_CKPT = False
 CKPT_NUM = 3
@@ -125,7 +126,7 @@ def main(rank, world_size):
         opt = ckpt.load_state_dict(ckpt['optimizer'])
     else:
         print("Not using checkpoint")
-        model = DDP(SFCNModel().to(rank), device_ids=[rank])
+        model = DDP(SFCNModelMONAI().to(rank), device_ids=[rank])
         opt = torch.optim.Adam(model.parameters(), lr)
     device = rank
 
@@ -218,9 +219,9 @@ def main(rank, world_size):
             torch.save(model.state_dict(), f'/home/finn.vamosi/3Brain/models/epoch_{epoch}_model.pt')
 
         writer.add_scalar(f"Training lr={LR}/MSE_train", list_avg(train_losses), epoch)
-        writer.add_scalar(f"Testing lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
-        writer.add_scalar(f"Testing lr={LR}/MSE_eval", list_avg(MSE_losses), epoch)
-        writer.add_scalar(f"Testing lr={LR}/MAE_with_mean_eval", list_avg(MAE_with_mean_losses), epoch)
+        writer.add_scalar(f"Validation lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
+        writer.add_scalar(f"Validation lr={LR}/MSE_eval", list_avg(MSE_losses), epoch)
+        writer.add_scalar(f"Validation lr={LR}/MAE_with_mean_eval", list_avg(MAE_with_mean_losses), epoch)
 
     # Training ended
     print_title("End of Training")
