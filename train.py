@@ -27,33 +27,24 @@ def setup(rank, world_size):
     torch.cuda.set_device(rank)
 
 
-def main(rank, world_size):
-    setup(rank, world_size)
+def main():
+    # setup(rank, world_size)
 
     # Setup DDP:
     # dist.init_process_group("nccl")
     # rank = dist.get_rank()
     # # rank = int(os.environ["LOCAL_RANK"])
     # device = rank % torch.cuda.device_count()
-    seed = 1 * dist.get_world_size() + rank
-    torch.manual_seed(seed)
-    # torch.cuda.set_device(device)
-    print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
+    # seed = 1 * dist.get_world_size() + rank
+    # torch.manual_seed(seed)
+    # # torch.cuda.set_device(device)
+    # print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
 
-    print(torch.cuda.device_count())
-
-    # Reading the data and the denormalization function
-    # images, mean_age, ages, get_age = read_data("data/91", postfix=".nii.gz", max_entries=MAX_IMAGES)
-    # images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped", postfix=".nii.gz", max_entries=MAX_IMAGES)
+    # print(torch.cuda.device_count())
 
     train_images, val_images, test_images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
                                                                                postfix=".nii.gz",
                                                                                max_entries=MAX_IMAGES)
-    # images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped", postfix=".nii.gz", max_entries=MAX_IMAGES)
-
-    # train_images, val_images, test_images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
-    #                                                                            postfix=".nii.gz",
-    #                                                                            max_entries=MAX_IMAGES)
 
     # Add transforms to the dataset
     # transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150]),EnsureChannelFirst(), NormalizeIntensity()])
@@ -67,35 +58,12 @@ def main(rank, world_size):
     test_ds = ImageDataset(image_files=test_images, labels=ages, dtype=np.float32, transform=transforms,
                            reader="NibabelReader")
 
-    # Split the data into training and testing sets
-    # train_ds, val_ds, test_ds = torch.utils.data.random_split(ds, [.8, .1, .1])
-
-    # train_list_eid = [train_ds.dataset.image_files[x] for x in train_ds.indices]
-    # val_list_eid = [val_ds.dataset.image_files[x] for x in val_ds.indices]
-    # test_list_eid = [test_ds.dataset.image_files[x] for x in test_ds.indices]
-
-    # print(train_list_eid)
-    # print(val_list_eid)
-    # print(test_list_eid)
-
-    # with open("/home/finn.vamosi/3Brain/split/train.txt", "w") as file:
-    #     for name in train_list_eid:
-    #         file.write("%s\n" % name)
-    #
-    # with open("/home/finn.vamosi/3Brain/split/val.txt", "w") as file:
-    #     for name in val_list_eid:
-    #         file.write("%s\n" % name)
-    #
-    # with open("/home/finn.vamosi/3Brain/split/test.txt", "w") as file:
-    #     for name in test_list_eid:
-    #         file.write("%s\n" % name)
-
-    train_loader = DataLoader(train_ds, shuffle=False, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
-                              pin_memory=torch.cuda.is_available(), sampler=DistributedSampler(train_ds))
-    val_loader = DataLoader(val_ds, shuffle=False, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
-                            pin_memory=torch.cuda.is_available(), sampler=DistributedSampler(val_ds))
-    test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
-                             pin_memory=torch.cuda.is_available(), sampler=DistributedSampler(test_ds))
+    train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
+                              pin_memory=torch.cuda.is_available())
+    val_loader = DataLoader(val_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
+                            pin_memory=torch.cuda.is_available())
+    test_loader = DataLoader(test_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
+                             pin_memory=torch.cuda.is_available())
 
     # if DEBUG:
     #     print_title("Image Properties")
@@ -107,17 +75,15 @@ def main(rank, world_size):
     #     print_title("Data Splitting")
     #     print(f"Train: {len(train_ds)} Val: {len(val_ds)} Test: {len(test_ds)}")
 
-    # # Check if CUDA is available
-    # torch.cuda._lazy_init()
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # print(device)
-    # if device == "cuda":
-    #     torch.cuda.empty_cache()
-    # if DEBUG:
-    #     print("device: ", device)
+    # Check if CUDA is available
+    torch.cuda._lazy_init()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
+    if device == "cuda":
+        torch.cuda.empty_cache()
+    if DEBUG:
+        print("device: ", device)
 
-    # Load the model
-    # model = DDP(SFCNModel().to(device), device_ids=[rank])
     lr = LR
     if USE_CKPT:
         print("Using checkpoint")
@@ -126,9 +92,8 @@ def main(rank, world_size):
         opt = ckpt.load_state_dict(ckpt['optimizer'])
     else:
         print("Not using checkpoint")
-        model = DDP(SFCNModelMONAI().to(rank), device_ids=[rank])
+        model = SFCNModelMONAI().to(device)
         opt = torch.optim.Adam(model.parameters(), lr)
-    device = rank
 
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
@@ -199,14 +164,13 @@ def main(rank, world_size):
                     f"Last Predicted Age: {get_age(pred[-1].item()):<.4f} Last Actual Age: {get_age(test_Y[-1].item()):<.4f}")
 
         if epoch % CKPT_EVERY == 0 and epoch > 0:
-            if rank == 0:
-                checkpoint = {
-                    "model": model.module.state_dict(),
-                    "optimizer": opt.state_dict()
-                }
-                checkpoint_path = f"/home/finn.vamosi/3Brain/checkpoints/{epoch:07d}.pt"
-                torch.save(checkpoint, checkpoint_path)
-                writer.add_text(f"Saved checkpoint to {checkpoint_path}")
+            checkpoint = {
+                "model": model.module.state_dict(),
+                "optimizer": opt.state_dict()
+            }
+            checkpoint_path = f"/home/finn.vamosi/3Brain/checkpoints/{epoch:07d}.pt"
+            torch.save(checkpoint, checkpoint_path)
+            writer.add_text(f"Saved checkpoint to {checkpoint_path}")
 
         # Epoch over
         schdlr.step()
@@ -287,6 +251,7 @@ if __name__ == "__main__":
             DEBUG = True
     else:
         DEBUG = False
-    z = torch.cuda.device_count()
-    print(z)
-    mp.spawn(main, args=(z,), nprocs=1)
+    # z = torch.cuda.device_count()
+    # print(z)
+    # mp.spawn(main, args=(z,), nprocs=1)
+    main()
