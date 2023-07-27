@@ -14,8 +14,8 @@ import torch.multiprocessing as mp
 
 BATCH_SIZE = 8
 N_WORKERS = 4
-N_EPOCHS = 30
-MAX_IMAGES = 10000
+N_EPOCHS = 35
+MAX_IMAGES = 6000
 LR = 0.0001
 CKPT_EVERY = 999
 USE_CKPT = False
@@ -62,7 +62,7 @@ def main():
                               pin_memory=torch.cuda.is_available())
     val_loader = DataLoader(val_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
                             pin_memory=torch.cuda.is_available())
-    test_loader = DataLoader(test_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
+    test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
                              pin_memory=torch.cuda.is_available())
 
     # if DEBUG:
@@ -98,6 +98,7 @@ def main():
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
     schdlr = torch.optim.lr_scheduler.StepLR(opt, step_size=N_EPOCHS // 3, gamma=0.1)
+    # schdlr = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, "min", patience=5)
     writer = SummaryWriter()
 
     # Training the model
@@ -174,6 +175,7 @@ def main():
 
         # Epoch over
         schdlr.step()
+        # schdlr.step(MSELoss_fn())
 
         # Save the model every 10th iteration if the loss is the lowest in this session
         if MSE_loss.item() < min_MSE.item() and epoch % 5 == 0:
