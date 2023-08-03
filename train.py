@@ -14,7 +14,7 @@ import torch.multiprocessing as mp
 
 BATCH_SIZE = 8
 N_WORKERS = 4
-N_EPOCHS = 35
+N_EPOCHS = 20
 MAX_IMAGES = 6000
 LR = 0.0001
 CKPT_EVERY = 999
@@ -48,7 +48,7 @@ def main():
 
     # Add transforms to the dataset
     # transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150]),EnsureChannelFirst(), NormalizeIntensity()])
-    transforms = Compose([customTransforms.Crop3D((150, 150, 150)), EnsureChannelFirst(), NormalizeIntensity()])
+    transforms = Compose([customTransforms.Crop3D((150, 150, 100)), EnsureChannelFirst(), NormalizeIntensity()])
 
     # Define image dataset, data loader
     train_ds = ImageDataset(image_files=train_images, labels=ages, dtype=np.float32, transform=transforms,
