@@ -63,8 +63,9 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     images = []
     ages = np.array([])
     diseased = []
+    cfs = []
     idx = 0
-    ids =[]
+    idx2 = 0
 
     # Cleaning the data
     df = df.drop_duplicates(subset=["EID"])
@@ -75,26 +76,33 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
             name = line[:-1]
             diseased.append(name)
 
-        for f in sorted(os.listdir(path)):
-            if f.endswith(".nii.gz"):
-                # Find the EID in the file
-                filename = f.split('_')[0]
+        with open("cfs.txt", "r") as file2:
+            for line2 in file2:
+                cf = line2[:-1]
+                cfs.append(cf)
 
-                if filename == diseased[idx]:
-                    # skip over diseased subjects
-                    if idx < len(diseased) - 1:
-                        idx += 1
-                else:
-                    images.append(f)
-                    ids.append(filename[0])
-                    # Find the corresponding age
-                    # s_age = df.query(f"EID == {filename}")["Age"]
-                    # if not s_age.empty:
-                    #     age = s_age.iloc[0]
+                for f in sorted(os.listdir(path)):
+                    if f.endswith(".nii.gz"):
+                        # Find the EID in the file
+                        filename = f.split('_')[0]
 
-                    age = filename[1]
-                    age = np.float32(age)
-                    ages = np.append(ages, age)
+                        if filename == diseased[idx]:
+                            # skip over diseased subjects
+                            if idx < len(diseased) - 1:
+                                idx += 1
+                        if filename == cfs[idx2]:
+                            if idx2 < len(cfs) - 1:
+                                idx2 += 1
+                        else:
+                            images.append(f)
+                            # Find the corresponding age
+                            # s_age = df.query(f"EID == {filename}")["Age"]
+                            # if not s_age.empty:
+                            #     age = s_age.iloc[0]
+
+                            age = f.split("_")[1]
+                            age = np.float32(age)
+                            ages = np.append(ages, age)
 
     # Convert the images into paths
     images = [os.sep.join([path, image]) for image in images]
@@ -109,13 +117,6 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     if not normalize:
         denorm_fn = lambda x: x
         norm_ages = ages
-
-    with open("cfs.txt", "w") as file:
-        print("Saving counterfactual ids to 'cfs.txt'...")
-
-        for name in ids:
-            file.write("%s\n" % name)
-        print("Done.")
 
     if DEBUG:
         print_title("Reading the CSV File")

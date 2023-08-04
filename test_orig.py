@@ -17,13 +17,13 @@ MAX_IMAGES = -1
 
 
 def main():
-    # train_images, val_images, test_images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
-    #                                                                            postfix=".nii.gz",
-    #                                                                            max_entries=MAX_IMAGES)
+    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
+                                                                               postfix=".nii.gz",
+                                                                               max_entries=MAX_IMAGES)
 
-    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/MACAW/cf_images/PCA",
-                                                postfix=".nii.gz",
-                                                max_entries=MAX_IMAGES)
+    # images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/MACAW/cf_images/PCA",
+    #                                             postfix=".nii.gz",
+    #                                             max_entries=MAX_IMAGES)
 
     # Add transforms to the dataset
     # transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150]),EnsureChannelFirst(), NormalizeIntensity()])
