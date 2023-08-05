@@ -1,3 +1,4 @@
+import math
 
 from torch.utils.data import DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
@@ -17,7 +18,7 @@ MAX_IMAGES = -1
 
 
 def main():
-    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
+    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped/test",
                                                                                postfix=".nii.gz",
                                                                                max_entries=MAX_IMAGES)
 
@@ -94,7 +95,7 @@ def main():
     print(f"MAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv("/home/finn.vamosi/3Brain/predictions_cf.csv")
+    df.to_csv("/home/finn.vamosi/3Brain/predictions_orig.csv")
 
     if DEBUG:
         print_title("Testing Data")

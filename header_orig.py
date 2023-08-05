@@ -81,36 +81,41 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
                 cf = line2[:-1]
                 cfs.append(cf)
 
-                for f in sorted(os.listdir(path)):
-                    if f.endswith(".nii.gz"):
-                        # Find the EID in the file
-                        filename = f.split('_')[0]
+        for f in sorted(os.listdir(path)):
+            if f.endswith(".nii.gz"):
+                # Find the EID in the file
+                filename = f.split('.')[0]
+                # print(filename, cfs[idx2], idx2)
 
-                        if filename == diseased[idx]:
-                            # skip over diseased subjects
-                            if idx < len(diseased) - 1:
-                                idx += 1
-                        if filename == cfs[idx2]:
-                            if idx2 < len(cfs) - 1:
-                                idx2 += 1
-                        else:
-                            images.append(f)
-                            # Find the corresponding age
-                            # s_age = df.query(f"EID == {filename}")["Age"]
-                            # if not s_age.empty:
-                            #     age = s_age.iloc[0]
+                if filename == diseased[idx]:
+                    # skip over diseased subjects
+                    if idx < len(diseased) - 1:
+                        idx += 1
 
-                            age = f.split("_")[1]
-                            age = np.float32(age)
-                            ages = np.append(ages, age)
+                if filename == cfs[idx2]:
+                    print(filename, idx2, idx2 < len(cfs) - 1)
+                    images.append(f)
+
+                    # Find the corresponding age
+                    s_age = df.query(f"EID == {filename}")["Age"]
+                    if not s_age.empty:
+                        age = s_age.iloc[0]
+
+                    age = np.float32(age)
+                    ages = np.append(ages, age)
+
+                    if idx2 < len(cfs)-1:
+                        idx2 += 1
 
     # Convert the images into paths
     images = [os.sep.join([path, image]) for image in images]
     # Z Normalizing the ages
-    mean_age = ages.mean()
-    sd_age = ages.std()
-    # print(mean_age, sd_age)
+    mean_age = df["Age"].mean()
+    sd_age = df["Age"].std()
+    print(mean_age, sd_age)
     norm_ages = (ages - mean_age) / sd_age
+
+    print(len(images))
 
     # Creating a function that can be used for converting
     # the normalized number back to the original ages
