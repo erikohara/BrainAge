@@ -107,8 +107,9 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     # Convert the images into paths
     images = [os.sep.join([path, image]) for image in images]
     # Z Normalizing the ages
-    mean_age = df["Age"].mean()
-    sd_age = df["Age"].std()
+    mean_age = ages.mean()
+    sd_age = ages.std()
+    # print(mean_age, sd_age)
     norm_ages = (ages - mean_age) / sd_age
 
     # Creating a function that can be used for converting

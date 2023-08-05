@@ -4,14 +4,14 @@ from torch.utils.tensorboard import SummaryWriter
 
 import customTransforms
 from SFCN import SFCNModelMONAI
-from header_test import *
+from header_orig import *
 import monai
 
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.multiprocessing as mp
 
-BATCH_SIZE = 8
+BATCH_SIZE = 1
 N_WORKERS = 4
 MAX_IMAGES = -1
 
@@ -70,19 +70,24 @@ def main():
             # Make a prediction
             pred = model(test_X)
 
-            # Calculate the losses
-            MSE_loss = MSELoss_fn(pred, test_Y)
-            MAE_loss = MAELoss_fn(pred, test_Y)
-            MAE_with_mean_loss = MAE_with_mean_fn(mean_age, test_Y)
+            if not math.isnan(pred):
+                # print(test_Y, pred)
 
-            MSE_losses.append(MSE_loss.item())
-            MAE_losses.append(MAE_loss.item())
-            MAE_with_mean_losses.append(MAE_with_mean_loss.item())
+                # Calculate the losses
+                MSE_loss = MSELoss_fn(pred, test_Y)
+                MAE_loss = MAELoss_fn(pred, test_Y)
+                MAE_with_mean_loss = MAE_with_mean_fn(mean_age, test_Y)
 
-            for i, ith_pred in enumerate(pred):
-                df.loc[len(df)] = {"Age": test_Y[i].item(), "Prediction": ith_pred.item(),
-                                   "ABSError": abs(test_Y[i].item() - ith_pred.item()),
-                                   "ABSMEANError": abs(test_Y[i].item() - mean_age)}
+                # print(pred, test_Y, MSE_loss, MAE_loss)
+
+                MSE_losses.append(MSE_loss.item())
+                MAE_losses.append(MAE_loss.item())
+                MAE_with_mean_losses.append(MAE_with_mean_loss.item())
+
+                for i, ith_pred in enumerate(pred):
+                    df.loc[len(df)] = {"Age": test_Y[i].item(), "Prediction": ith_pred.item(),
+                                       "ABSError": abs(test_Y[i].item() - ith_pred.item()),
+                                       "ABSMEANError": abs(test_Y[i].item() - mean_age)}
 
     # End of testing
     print_title("End of Testing")

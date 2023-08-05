@@ -81,26 +81,29 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
                 filename = f.split('_')[0]
 
                 if filename == diseased[idx]:
+                    print("diseased found")
                     # skip over diseased subjects
                     if idx < len(diseased) - 1:
                         idx += 1
                 else:
                     images.append(f)
-                    ids.append(filename[0])
+                    ids.append(filename)
                     # Find the corresponding age
                     # s_age = df.query(f"EID == {filename}")["Age"]
                     # if not s_age.empty:
                     #     age = s_age.iloc[0]
 
-                    age = filename[1]
+                    age = f.split('_')[1]
                     age = np.float32(age)
+                    # print(age, type(age))
                     ages = np.append(ages, age)
 
     # Convert the images into paths
     images = [os.sep.join([path, image]) for image in images]
     # Z Normalizing the ages
-    mean_age = df["Age"].mean()
-    sd_age = df["Age"].std()
+    mean_age = ages.mean()
+    sd_age = ages.std()
+    # print(mean_age, sd_age)
     norm_ages = (ages - mean_age) / sd_age
 
     # Creating a function that can be used for converting
