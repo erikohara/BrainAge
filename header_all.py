@@ -85,16 +85,17 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
                     if idx < len(diseased) - 1:
                         idx += 1
 
-                # print(filename, idx2, idx2 < len(cfs) - 1)
-                images.append(f)
+                else:
+                    # print(filename, idx2, idx2 < len(cfs) - 1)
+                    images.append(f)
 
-                # Find the corresponding age
-                s_age = df.query(f"EID == {filename}")["Age"]
-                if not s_age.empty:
-                    age = s_age.iloc[0]
+                    # Find the corresponding age
+                    s_age = df.query(f"EID == {filename}")["Age"]
+                    if not s_age.empty:
+                        age = s_age.iloc[0]
 
-                age = np.float32(age)
-                ages = np.append(ages, age)
+                    age = np.float32(age)
+                    ages = np.append(ages, age)
 
     # Convert the images into paths
     images = [os.sep.join([path, image]) for image in images]

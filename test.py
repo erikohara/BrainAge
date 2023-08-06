@@ -22,7 +22,7 @@ def main():
     #                                                                            postfix=".nii.gz",
     #                                                                            max_entries=MAX_IMAGES)
 
-    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/MACAW/cf_images/PCA",
+    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/MACAW/cf_images/PCA_post",
                                                 postfix=".nii.gz",
                                                 max_entries=MAX_IMAGES)
 
@@ -102,7 +102,7 @@ def main():
     print(f"MAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv("/home/finn.vamosi/3Brain/predictions_cf.csv")
+    df.to_csv("/home/finn.vamosi/3Brain/predictions_cf2.csv")
 
     if DEBUG:
         print_title("Testing Data")
