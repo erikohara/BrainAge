@@ -93,7 +93,7 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
                         idx += 1
 
                 if filename == cfs[idx2]:
-                    print(filename, idx2, idx2 < len(cfs) - 1)
+                    # print(filename, idx2, idx2 < len(cfs) - 1)
                     images.append(f)
 
                     # Find the corresponding age

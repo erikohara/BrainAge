@@ -55,14 +55,20 @@ def main():
     # Testing
     print_title("Testing")
     model.eval()
-    df = pd.DataFrame(columns=["Age", "Prediction", "ABSError", "ABSMEANError"])
+    df = pd.DataFrame(columns=["EID", "Age", "Prediction", "ABSError", "ABSMEANError"])
     MSE_losses = []
     MAE_losses = []
     MAE_with_mean_losses = []
 
+    idx = 0
+    imgs = test_ds.image_files
+
     with torch.no_grad():
         pbar3 = tqdm(test_loader)
         for data in pbar3:
+
+            img = imgs[idx]
+            idx += 1
 
             # Extract the input and the labels
             test_X, test_Y = data[0].to(device), data[1].to(device)
@@ -86,7 +92,8 @@ def main():
                 MAE_with_mean_losses.append(MAE_with_mean_loss.item())
 
                 for i, ith_pred in enumerate(pred):
-                    df.loc[len(df)] = {"Age": test_Y[i].item(), "Prediction": ith_pred.item(),
+                    df.loc[len(df)] = {"EID": img.split('/')[-1].split('_')[0], "Age": test_Y[i].item(),
+                                       "Prediction": ith_pred.item(),
                                        "ABSError": abs(test_Y[i].item() - ith_pred.item()),
                                        "ABSMEANError": abs(test_Y[i].item() - mean_age)}
 
