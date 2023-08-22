@@ -57,11 +57,11 @@ def main():
                            reader="NibabelReader")
 
     train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
-                              pin_memory=torch.cuda.is_available())
+                              pin_memory=torch.cuda.is_available(), drop_last=True)
     val_loader = DataLoader(val_ds, shuffle=True, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
-                            pin_memory=torch.cuda.is_available())
+                            pin_memory=torch.cuda.is_available(), drop_last=True)
     test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE, num_workers=N_WORKERS,
-                             pin_memory=torch.cuda.is_available())
+                             pin_memory=torch.cuda.is_available(), drop_last=True)
 
     # if DEBUG:
     #     print_title("Image Properties")
