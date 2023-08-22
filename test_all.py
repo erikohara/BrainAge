@@ -3,6 +3,7 @@ import math
 import customTransforms
 from SFCN import SFCNModelMONAI
 from header_all import *
+from train import cwd
 
 BATCH_SIZE = 1
 N_WORKERS = 4
@@ -37,7 +38,7 @@ def main():
         print("device: ", device)
 
     model = SFCNModelMONAI().to(device)
-    model.load_state_dict(torch.load(f"/home/finn.vamosi/3Brain/models/end_model.pt"))
+    model.load_state_dict(torch.load(f"{cwd}models/end_model.pt"))
 
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
@@ -92,7 +93,7 @@ def main():
     print(f"MAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv("/home/finn.vamosi/3Brain/predictions_all.csv")
+    df.to_csv(f"{cwd}predictions_all.csv")
 
     if DEBUG:
         print_title("Testing Data")

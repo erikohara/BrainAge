@@ -20,6 +20,7 @@ CKPT_EVERY = 999
 USE_CKPT = False
 CKPT_NUM = 3
 
+cwd = "/home/finn.vamosi/3Brain/"
 
 def setup(rank, world_size):
     dist.init_process_group('nccl', rank=rank, world_size=world_size)
@@ -27,6 +28,9 @@ def setup(rank, world_size):
 
 
 def main():
+    """
+    Trains an age prediction model on 3D brain scan images
+    """
     # setup(rank, world_size)
 
     # Setup DDP:
@@ -85,7 +89,7 @@ def main():
     lr = LR
     if USE_CKPT:
         print("Using checkpoint")
-        ckpt = torch.load(f"/home/finn.vamosi/3Brain/checkpoints/{CKPT_NUM:07d}.pt")
+        ckpt = torch.load(f"{cwd}checkpoints/{CKPT_NUM:07d}.pt")
         model = ckpt.load_state_dict(ckpt['model'])
         opt = ckpt.load_state_dict(ckpt['optimizer'])
     else:
@@ -166,7 +170,7 @@ def main():
                 "model": model.module.state_dict(),
                 "optimizer": opt.state_dict()
             }
-            checkpoint_path = f"/home/finn.vamosi/3Brain/checkpoints/{epoch:07d}.pt"
+            checkpoint_path = f"{cwd}checkpoints/{epoch:07d}.pt"
             torch.save(checkpoint, checkpoint_path)
             writer.add_text(f"Saved checkpoint to {checkpoint_path}")
 
@@ -179,7 +183,7 @@ def main():
             min_MSE = MSE_loss.detach()
             best_metric_epoch = epoch
             # torch.save(model.state_dict(), f'models/epoch_{epoch}_model.pt')
-            torch.save(model.state_dict(), f'/home/finn.vamosi/3Brain/models/epoch_{epoch}_model.pt')
+            torch.save(model.state_dict(), f'{cwd}models/epoch_{epoch}_model.pt')
 
         writer.add_scalar(f"Training lr={LR}/MSE_train", list_avg(train_losses), epoch)
         writer.add_scalar(f"Validation lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
@@ -195,7 +199,7 @@ def main():
 
     # Saving the model
     # torch.save(model.state_dict(), 'models/end_model.pt')
-    torch.save(model.state_dict(), '/home/finn.vamosi/3Brain/models/end_model.pt')
+    torch.save(model.state_dict(), f'{cwd}models/end_model.pt')
 
     # Testing
     print_title("Testing")
@@ -235,7 +239,7 @@ def main():
     print(f"MAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv("/home/finn.vamosi/3Brain/predictions.csv")
+    df.to_csv(f"{cwd}predictions.csv")
 
     if DEBUG:
         print_title("Testing Data")
