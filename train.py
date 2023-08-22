@@ -4,7 +4,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 import customTransforms
 from SFCN import SFCNModelMONAI
-from header import *
+from header_train import *
 import monai
 import nibabel
 

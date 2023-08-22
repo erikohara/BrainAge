@@ -1,16 +1,8 @@
 import math
 
-from torch.utils.data import DistributedSampler
-from torch.utils.tensorboard import SummaryWriter
-
 import customTransforms
 from SFCN import SFCNModelMONAI
 from header_all import *
-import monai
-
-import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel as DDP
-import torch.multiprocessing as mp
 
 BATCH_SIZE = 1
 N_WORKERS = 4
@@ -18,16 +10,14 @@ MAX_IMAGES = -1
 
 
 def main():
+    """
+    Tests on all original images in the test set
+    """
     images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped/test",
-                                                                               postfix=".nii.gz",
-                                                                               max_entries=MAX_IMAGES)
-
-    # images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/MACAW/cf_images/PCA",
-    #                                             postfix=".nii.gz",
-    #                                             max_entries=MAX_IMAGES)
+                                                postfix=".nii.gz",
+                                                max_entries=MAX_IMAGES)
 
     # Add transforms to the dataset
-    # transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150]),EnsureChannelFirst(), NormalizeIntensity()])
     transforms = Compose([customTransforms.Crop3D((150, 150, 100)), EnsureChannelFirst(), NormalizeIntensity()])
 
     # Define image dataset, data loader
@@ -92,7 +82,8 @@ def main():
                 MAE_with_mean_losses.append(MAE_with_mean_loss.item())
 
                 for i, ith_pred in enumerate(pred):
-                    df.loc[len(df)] = {"EID": img.split('/')[-1].split('.')[0], "Age": test_Y[i].item(), "Prediction": ith_pred.item(),
+                    df.loc[len(df)] = {"EID": img.split('/')[-1].split('.')[0], "Age": test_Y[i].item(),
+                                       "Prediction": ith_pred.item(),
                                        "ABSError": abs(test_Y[i].item() - ith_pred.item()),
                                        "ABSMEANError": abs(test_Y[i].item() - mean_age)}
 
