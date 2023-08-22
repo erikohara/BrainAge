@@ -1,11 +1,11 @@
 /runs/
 /data/
 /copy.png
-/working/Jul19_12-17-01_fg3/events.out.tfevents.1689790621.fg3.824445.0
-/working/Jul19_12-17-01_fg3/events.out.tfevents.1689790621.fg3.824446.0
-/working/Jul20_10-23-14_fg3/events.out.tfevents.1689870194.fg3.1132958.0
-/working/Jul20_10-27-31_mg2/events.out.tfevents.1689870451.mg2.600581.0
-/working/Jul20_11-47-52_mg5/events.out.tfevents.1689875272.mg5.3982595.0
+/oldWorking/working/Jul19_12-17-01_fg3/events.out.tfevents.1689790621.fg3.824445.0
+/oldWorking/working/Jul19_12-17-01_fg3/events.out.tfevents.1689790621.fg3.824446.0
+/oldWorking/working/Jul20_10-23-14_fg3/events.out.tfevents.1689870194.fg3.1132958.0
+/oldWorking/working/Jul20_10-27-31_mg2/events.out.tfevents.1689870451.mg2.600581.0
+/oldWorking/working/Jul20_11-47-52_mg5/events.out.tfevents.1689875272.mg5.3982595.0
 /split/test.txt
 /split/train.txt
 /val_data.pkl

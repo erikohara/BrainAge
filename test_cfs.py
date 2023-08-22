@@ -2,7 +2,7 @@ import math
 
 import customTransforms
 from SFCN import SFCNModelMONAI
-from header_test import *
+from header_cfs import *
 
 BATCH_SIZE = 1
 N_WORKERS = 4

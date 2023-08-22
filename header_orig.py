@@ -78,6 +78,7 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
 
         with open("cfs.txt", "r") as file2:
             for line2 in file2:
+                # remove linebreak (which is last character)
                 cf = line2[:-1]
                 cfs.append(cf)
 
@@ -104,7 +105,7 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
                     age = np.float32(age)
                     ages = np.append(ages, age)
 
-                    if idx2 < len(cfs)-1:
+                    if idx2 < len(cfs) - 1:
                         idx2 += 1
 
     # Convert the images into paths

@@ -1,4 +1,3 @@
-import nibabel
 from torch.utils.data import DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
@@ -39,15 +38,14 @@ def main():
     # torch.manual_seed(seed)
     # # torch.cuda.set_device(device)
     # print(f"Starting rank={rank}, seed=1, world_size={dist.get_world_size()}.")
-
     # print(torch.cuda.device_count())
 
+    # Load the images
     train_images, val_images, test_images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped",
                                                                                postfix=".nii.gz",
                                                                                max_entries=MAX_IMAGES)
 
     # Add transforms to the dataset
-    # transforms = Compose([monai.transforms.CenterSpatialCrop(roi_size=[150,150]),EnsureChannelFirst(), NormalizeIntensity()])
     transforms = Compose([customTransforms.Crop3D((150, 150, 100)), EnsureChannelFirst(), NormalizeIntensity()])
 
     # Define image dataset, data loader
@@ -147,7 +145,6 @@ def main():
                 test_Y = test_Y.type('torch.cuda.FloatTensor')
 
                 # Make a prediction
-                # print("TEST: \n"+test_X)
                 pred = model(test_X)
 
                 # Calculate the losses
