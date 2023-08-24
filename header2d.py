@@ -68,11 +68,13 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
     # Cleaning the data
     df = df.drop_duplicates(subset=["EID"])
 
-    with open("/home/finn.vamosi/BrainAge/overlap.txt", "r") as file:
+    with open("/home/finn.vamosi/BrainAge/nl2_np2_controls.csv", "r") as file:
         for line in file:
             # remove linebreak (which is last character)
             name = line[:-1]
             diseased.append(name)
+
+    # drop=pd.read_csv("nl2_np2_controls.csv")
 
     for f in sorted(os.listdir(path)):
         # Find the EID in the file
