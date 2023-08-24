@@ -69,7 +69,6 @@ def main():
             pred = model(test_X)
 
             if not math.isnan(pred):
-                # print(test_Y, pred)
 
                 # Calculate the losses
                 MSE_loss = MSELoss_fn(pred, test_Y)

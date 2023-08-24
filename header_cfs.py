@@ -22,7 +22,7 @@ def list_avg(ls):
     return sum(ls) / len(ls)
 
 
-def read_data(folder_name, postfix, max_entries=-1, normalize=False):
+def read_data(path, postfix, max_entries=-1, normalize=False):
     '''
         Reads the images from a directory and returns the valid image paths, normalized ages, and
         a denormalize function
@@ -57,8 +57,6 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
 
     df = pd.read_csv('ukbb_img.csv')
     # df = pd.read_csv('/home/finn.vamosi/3Brain/ukbb_img.csv')
-    # path = os.sep.join([".", folder_name])
-    path = folder_name
 
     images = []
     ages = np.array([])
@@ -95,11 +93,13 @@ def read_data(folder_name, postfix, max_entries=-1, normalize=False):
 
     # Convert the images into paths
     images = [os.sep.join([path, image]) for image in images]
+
     # Z Normalizing the ages
     mean_age = ages.mean()
     sd_age = ages.std()
-    # print(mean_age, sd_age)
     norm_ages = (ages - mean_age) / sd_age
+
+    print(len(images))
 
     # Creating a function that can be used for converting
     # the normalized number back to the original ages

@@ -100,7 +100,6 @@ def main():
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
     schdlr = torch.optim.lr_scheduler.StepLR(opt, step_size=N_EPOCHS // 3, gamma=0.1)
-    # schdlr = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, "min", patience=5)
     writer = SummaryWriter()
 
     # Training the model
@@ -236,7 +235,8 @@ def main():
 
     # End of testing
     print_title("End of Testing")
-    print(f"MAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
+    print(f"MAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}\n\nWARNING: "
+          f"This returns a much higher error than it should. Run test_all.py to get a more accurate measure.\n\n")
 
     # Saving predictions into a .csv file
     df.to_csv(f"{cwd}predictions.csv")
