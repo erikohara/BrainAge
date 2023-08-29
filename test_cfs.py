@@ -88,7 +88,7 @@ def main():
 
     # End of testing
     print_title("End of Testing")
-    print(f"MAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
+    print(f"COUNTERFACTUAL TEST\nMAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
     df.to_csv(f"{cwd}predictions_cf.csv")
