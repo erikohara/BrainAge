@@ -1,15 +1,15 @@
 from torch.utils.data import DistributedSampler
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 
 import customTransforms
 from SFCN import SFCNModelMONAI
 from header_train import *
-import monai
-import nibabel
+#import monai
+#import nibabel
 
 import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel as DDP
-import torch.multiprocessing as mp
+#from torch.nn.parallel import DistributedDataParallel as DDP
+#import torch.multiprocessing as mp
 
 BATCH_SIZE = 8
 N_WORKERS = 4
@@ -20,7 +20,7 @@ CKPT_EVERY = 999
 USE_CKPT = False
 CKPT_NUM = 3
 
-cwd = "/home/finn.vamosi/3Brain/"
+cwd = "/home/erik.ohara/BrainAge/"
 
 def setup(rank, world_size):
     dist.init_process_group('nccl', rank=rank, world_size=world_size)
@@ -100,7 +100,7 @@ def main():
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
     schdlr = torch.optim.lr_scheduler.StepLR(opt, step_size=N_EPOCHS // 3, gamma=0.1)
-    writer = SummaryWriter()
+    #writer = SummaryWriter()
 
     # Training the model
     print_title("Training")
@@ -171,7 +171,7 @@ def main():
             }
             checkpoint_path = f"{cwd}checkpoints/{epoch:07d}.pt"
             torch.save(checkpoint, checkpoint_path)
-            writer.add_text(f"Saved checkpoint to {checkpoint_path}")
+            #writer.add_text(f"Saved checkpoint to {checkpoint_path}")
 
         # Epoch over
         schdlr.step()
@@ -184,17 +184,17 @@ def main():
             # torch.save(model.state_dict(), f'models/epoch_{epoch}_model.pt')
             torch.save(model.state_dict(), f'{cwd}models/epoch_{epoch}_model.pt')
 
-        writer.add_scalar(f"Training lr={LR}/MSE_train", list_avg(train_losses), epoch)
-        writer.add_scalar(f"Validation lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
-        writer.add_scalar(f"Validation lr={LR}/MSE_eval", list_avg(MSE_losses), epoch)
-        writer.add_scalar(f"Validation lr={LR}/MAE_with_mean_eval", list_avg(MAE_with_mean_losses), epoch)
+        #writer.add_scalar(f"Training lr={LR}/MSE_train", list_avg(train_losses), epoch)
+        #writer.add_scalar(f"Validation lr={LR}/MAE_eval", list_avg(MAE_losses), epoch)
+        #writer.add_scalar(f"Validation lr={LR}/MSE_eval", list_avg(MSE_losses), epoch)
+        #writer.add_scalar(f"Validation lr={LR}/MAE_with_mean_eval", list_avg(MAE_with_mean_losses), epoch)
 
     # Training ended
     print_title("End of Training")
     print(f"best metric epoch: {best_metric_epoch}")
     print(f"best metric (MSE): {min_MSE.item()}")
 
-    writer.flush()
+    #writer.flush()
 
     # Saving the model
     # torch.save(model.state_dict(), 'models/end_model.pt')

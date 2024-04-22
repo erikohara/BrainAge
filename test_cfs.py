@@ -4,16 +4,25 @@ import customTransforms
 from SFCN import SFCNModelMONAI
 from header_cfs import *
 from train import cwd
+import argparse
 
 BATCH_SIZE = 1
 N_WORKERS = 4
 MAX_IMAGES = -1
 
+# Getting site aside and target
+'''
+parser = argparse.ArgumentParser()
+parser.add_argument('cf_age')
+args = parser.parse_args()
+cf_age = args.cf_age
+'''
+
 def main():
     """
     Tests on counterfactual images
     """
-    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/MACAW/cf_images/PCA_post",
+    images, mean_age, ages, get_age = read_data(f"/work/forkert_lab/erik/MACAW/cf_images/PCA3D_five_nores",
                                                 postfix=".nii.gz",
                                                 max_entries=MAX_IMAGES)
 
@@ -66,6 +75,7 @@ def main():
 
             # Make a prediction
             pred = model(test_X)
+            age_cf = int(img.split('/')[-1].split('_')[1])
 
             if not math.isnan(pred):
 
@@ -81,17 +91,17 @@ def main():
                 MAE_with_mean_losses.append(MAE_with_mean_loss.item())
 
                 for i, ith_pred in enumerate(pred):
-                    df.loc[len(df)] = {"EID": img.split('/')[-1].split('_')[0], "Age": test_Y[i].item(),
+                    df.loc[len(df)] = {"EID": img.split('/')[-1].split('_')[0], "Age": age_cf,
                                        "Prediction": ith_pred.item(),
-                                       "ABSError": abs(test_Y[i].item() - ith_pred.item()),
-                                       "ABSMEANError": abs(test_Y[i].item() - mean_age)}
+                                       "ABSError": abs(age_cf- ith_pred.item()),
+                                       "ABSMEANError": abs(age_cf - mean_age)}
 
     # End of testing
     print_title("End of Testing")
     print(f"COUNTERFACTUAL TEST\nMAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv(f"{cwd}predictions_cf.csv")
+    df.to_csv(f"{cwd}predictions_cf_PCA3D_five_nores.csv")
 
     if DEBUG:
         print_title("Testing Data")

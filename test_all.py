@@ -14,7 +14,7 @@ def main():
     """
     Tests on all original images in the test set
     """
-    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/T1_warped/test",
+    images, mean_age, ages, get_age = read_data("/work/forkert_lab/erik/MACAW/cf_images/PCA_zero_diff",
                                                 postfix=".nii.gz",
                                                 max_entries=MAX_IMAGES)
 
@@ -92,7 +92,7 @@ def main():
     print(f"ALL TEST\nMAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv(f"{cwd}predictions_all.csv")
+    df.to_csv(f"{cwd}predictions_all-cf_zero.csv")
 
     if DEBUG:
         print_title("Testing Data")

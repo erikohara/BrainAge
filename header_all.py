@@ -55,7 +55,7 @@ def read_data(path, postfix, max_entries=-1, normalize=False):
         
     '''
 
-    df = pd.read_csv('ukbb_img.csv')
+    df = pd.read_csv('/home/erik.ohara/BrainAge/ukbb_img.csv')
     # df = pd.read_csv('/home/finn.vamosi/3Brain/ukbb_img.csv')
 
     images = []
@@ -66,7 +66,7 @@ def read_data(path, postfix, max_entries=-1, normalize=False):
     # Cleaning the data
     df = df.drop_duplicates(subset=["EID"])
 
-    with open("overlap.txt", "r") as file:
+    with open("/home/erik.ohara/BrainAge/overlap.txt", "r") as file:
         for line in file:
             # remove linebreak (which is last character)
             name = line[:-1]
@@ -75,7 +75,8 @@ def read_data(path, postfix, max_entries=-1, normalize=False):
         for f in sorted(os.listdir(path)):
             if f.endswith(".nii.gz"):
                 # Find the EID in the file
-                filename = f.split('.')[0]
+                #filename = f.split('.')[0]
+                filename = f.split('_')[0]
                 # print(filename, cfs[idx2], idx2)
 
                 if filename == diseased[idx]:
