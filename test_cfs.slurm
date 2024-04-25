@@ -5,8 +5,6 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=15:00:00
 #SBATCH --mem=4GB
-#SBATCH --partition=gpu-v100
-#SBATCH --gres=gpu:1
 #SBATCH --mail-user=erik.ohara@ucalgary.ca
 #SBATCH --mail-type=ALL
 

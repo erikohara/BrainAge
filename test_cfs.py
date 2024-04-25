@@ -22,7 +22,7 @@ def main():
     """
     Tests on counterfactual images
     """
-    images, mean_age, ages, get_age = read_data(f"/work/forkert_lab/erik/MACAW/cf_images/PCA3D_five_nores",
+    images, mean_age, ages, get_age = read_data(f"/work/forkert_lab/erik/MACAW/cf_images/PCA3D_five_150nevecs",
                                                 postfix=".nii.gz",
                                                 max_entries=MAX_IMAGES)
 
@@ -37,7 +37,7 @@ def main():
                              pin_memory=torch.cuda.is_available())
 
     # Check if CUDA is available
-    torch.cuda._lazy_init()
+    #torch.cuda._lazy_init()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
     if device == "cuda":
@@ -46,7 +46,7 @@ def main():
         print("device: ", device)
 
     model = SFCNModelMONAI().to(device)
-    model.load_state_dict(torch.load(f"{cwd}models/end_model.pt"))
+    model.load_state_dict(torch.load(f"{cwd}models/end_model.pt", map_location=torch.device(device)))
 
     MSELoss_fn = nn.MSELoss()
     MAELoss_fn = nn.L1Loss()
@@ -71,7 +71,7 @@ def main():
 
             # Extract the input and the labels
             test_X, test_Y = data[0].to(device), data[1].to(device)
-            test_Y = test_Y.type('torch.cuda.FloatTensor')
+            #test_Y = test_Y.type('torch.cuda.FloatTensor')
 
             # Make a prediction
             pred = model(test_X)
@@ -101,7 +101,7 @@ def main():
     print(f"COUNTERFACTUAL TEST\nMAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv(f"{cwd}predictions_cf_PCA3D_five_nores.csv")
+    df.to_csv(f"{cwd}predictions_cf_PCA3D_five_150nevecs.csv")
 
     if DEBUG:
         print_title("Testing Data")
