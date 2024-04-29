@@ -22,7 +22,7 @@ def main():
     """
     Tests on counterfactual images
     """
-    images, mean_age, ages, get_age = read_data(f"/work/forkert_lab/erik/MACAW/cf_images/PCA3D_five_150nevecs",
+    images, mean_age, ages, get_age = read_data(f"/work/forkert_lab/erik/MACAW/cf_images/PCA3D_five_150nevecs_46864",
                                                 postfix=".nii.gz",
                                                 max_entries=MAX_IMAGES)
 
@@ -101,7 +101,7 @@ def main():
     print(f"COUNTERFACTUAL TEST\nMAE: {list_avg(MAE_losses)} MSE: {list_avg(MSE_losses)}")
 
     # Saving predictions into a .csv file
-    df.to_csv(f"{cwd}predictions_cf_PCA3D_five_150nevecs.csv")
+    df.to_csv(f"{cwd}predictions_cf_PCA3D_five_150nevecs_46864.csv")
 
     if DEBUG:
         print_title("Testing Data")
